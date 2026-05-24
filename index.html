@@ -802,7 +802,63 @@
   }
   .footer-links a:hover { color: var(--electric); }
 
-  /* ===== TICKER ===== */
+  /* ===== GLOBAL MINI PLAYER ===== */
+  #gp {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 8000;
+    background: linear-gradient(135deg, #0d1f3c, #0a1628);
+    border-top: 1px solid rgba(30,144,255,0.3);
+    padding: 10px 16px 14px;
+    display: none; flex-direction: column; gap: 8px;
+    box-shadow: 0 -4px 30px rgba(0,0,0,0.6);
+  }
+  #gp.visible { display: flex; }
+  #gp-progress-wrap {
+    width: 100%; height: 3px; background: rgba(255,255,255,0.1);
+    border-radius: 2px; cursor: pointer;
+  }
+  #gp-progress-fill {
+    height: 100%; border-radius: 2px; width: 0%;
+    background: linear-gradient(90deg, var(--electric), var(--orange));
+    transition: width 0.1s linear;
+  }
+  #gp-main {
+    display: flex; align-items: center; gap: 12px;
+  }
+  #gp-cover {
+    width: 44px; height: 44px; border-radius: 6px;
+    object-fit: cover; flex-shrink: 0; background: #1a1a1a;
+    border: 1px solid rgba(30,144,255,0.3);
+  }
+  #gp-info { flex: 1; min-width: 0; }
+  #gp-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+    letter-spacing: 1px; color: var(--white);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #gp-artist {
+    font-size: 11px; color: rgba(255,255,255,0.45);
+    letter-spacing: 1px; margin-top: 1px;
+  }
+  #gp-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .gp-btn {
+    background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    padding: 4px; transition: transform 0.2s, opacity 0.2s;
+    touch-action: manipulation;
+  }
+  .gp-btn:hover { transform: scale(1.15); }
+  .gp-btn:active { transform: scale(0.9); }
+  .gp-btn.gp-play {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--electric), #0055bb);
+    box-shadow: 0 0 16px rgba(30,144,255,0.4);
+  }
+  #gp-time {
+    font-family: 'Space Mono', monospace; font-size: 10px;
+    color: rgba(255,255,255,0.35); letter-spacing: 1px;
+    display: flex; justify-content: space-between;
+    padding: 0 2px;
+  }
   .ticker {
     background: var(--electric);
     padding: 12px 0; overflow: hidden; white-space: nowrap;
@@ -2143,7 +2199,7 @@
 </script>
 
 <!-- PWA Install Button -->
-<button id="pwaBtnInstall" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:linear-gradient(135deg,#1e90ff,#0066cc);color:#fff;border:none;padding:13px 22px;border-radius:3px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 24px rgba(30,144,255,0.5);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">⬇ Install App</button>
+<button id="pwaBtnInstall" style="display:none;position:fixed;bottom:130px;right:16px;z-index:9999;background:linear-gradient(135deg,#1e90ff,#0066cc);color:#fff;border:none;padding:13px 22px;border-radius:3px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 24px rgba(30,144,255,0.5);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">⬇ Install App</button>
 <script>
   let _pwaDeferredPrompt = null;
   window.addEventListener('beforeinstallprompt', e => {
@@ -2161,6 +2217,100 @@
   window.addEventListener('appinstalled', () => {
     document.getElementById('pwaBtnInstall').style.display = 'none';
   });
+</script>
+<!-- GLOBAL MINI PLAYER -->
+<div id="gp">
+  <div id="gp-progress-wrap" onclick="gpSeek(event)">
+    <div id="gp-progress-fill"></div>
+  </div>
+  <div id="gp-main">
+    <img id="gp-cover" src="" alt="cover">
+    <div id="gp-info">
+      <div id="gp-title">—</div>
+      <div id="gp-artist">PulseWave Entertainment</div>
+    </div>
+    <div id="gp-controls">
+      <button class="gp-btn" onclick="gpPrev()" aria-label="Previous">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><polygon points="19,3 5,12 19,21"/><rect x="4" y="3" width="3" height="18"/></svg>
+      </button>
+      <button class="gp-btn gp-play" onclick="gpToggle()" aria-label="Play/Pause">
+        <svg id="gp-icon" width="20" height="20" viewBox="0 0 24 24" fill="#fff"><polygon points="5,3 19,12 5,21"/></svg>
+      </button>
+      <button class="gp-btn" onclick="gpNext()" aria-label="Next">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(255,255,255,0.7)"><polygon points="5,3 19,12 5,21"/><rect x="17" y="3" width="3" height="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="gp-time"><span id="gp-cur">0:00</span><span id="gp-dur">--:--</span></div>
+</div>
+
+<script>
+  // Cover images per song id
+  const PW_COVERS = {
+    'kt1':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt2':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt3':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt4':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt5':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt6':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt7':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+    'kt8':'https://res.cloudinary.com/dnx2afsnl/image/upload/q_auto/f_auto/v1779559381/file_0000000059387246ad0548cda3624042_mgc7ww.png',
+  };
+
+  function gpUpdate(id) {
+    if (!id) { document.getElementById('gp').classList.remove('visible'); return; }
+    const song = PW_SONGS[id]; if (!song) return;
+    document.getElementById('gp').classList.add('visible');
+    document.getElementById('gp-title').textContent = song.title;
+    document.getElementById('gp-cover').src = PW_COVERS[id] || '';
+  }
+
+  function gpSetPlayIcon(playing) {
+    document.getElementById('gp-icon').innerHTML = playing
+      ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      : '<polygon points="5,3 19,12 5,21"/>';
+  }
+
+  function gpToggle() {
+    if (!pwCurrent) return;
+    pwAudio.paused ? pwAudio.play() : pwAudio.pause();
+    gpSetPlayIcon(!pwAudio.paused);
+    pwSetIcon(pwCurrent, !pwAudio.paused);
+  }
+
+  function gpPrev() { if (pwCurrent) pwSkip(pwCurrent, -1); }
+  function gpNext() { if (pwCurrent) pwSkip(pwCurrent,  1); }
+
+  function gpSeek(e) {
+    if (!pwCurrent || !pwAudio.duration) return;
+    const wrap = document.getElementById('gp-progress-wrap');
+    const pct = Math.max(0, Math.min(1, (e.clientX - wrap.getBoundingClientRect().left) / wrap.offsetWidth));
+    const song = PW_SONGS[pwCurrent];
+    if (pwIsSnippet && pct * pwAudio.duration > song.snippetEnd) return;
+    pwAudio.currentTime = pct * pwAudio.duration;
+  }
+
+  // Hook into existing audio events
+  pwAudio.addEventListener('play',  () => gpSetPlayIcon(true));
+  pwAudio.addEventListener('pause', () => gpSetPlayIcon(false));
+
+  // Extend timeupdate to also update mini player
+  pwAudio.addEventListener('timeupdate', () => {
+    if (!pwCurrent) return;
+    const dur = pwAudio.duration || 0, cur = pwAudio.currentTime;
+    const pct = dur ? (cur / dur) * 100 : 0;
+    document.getElementById('gp-progress-fill').style.width = pct + '%';
+    document.getElementById('gp-cur').textContent = pwFmt(cur);
+    document.getElementById('gp-dur').textContent = pwFmt(dur);
+  });
+
+  // Patch pwPlay to update mini player whenever a song starts
+  const _origPwPlay = pwPlay;
+  pwPlay = function(id) {
+    _origPwPlay(id);
+    gpUpdate(id);
+    gpSetPlayIcon(true);
+  };
 </script>
 </body>
 </html>
